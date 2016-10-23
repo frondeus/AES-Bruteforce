@@ -1,0 +1,13 @@
+[package]
+name = "test2"
+version = "0.1.0"
+authors = ["Wojciech Polak <frondeus@gmail.com>"]
+
+[dependencies]
+openssl = "*"
+rustc-serialize = "0.3"
+data-encoding = "*"
+byteorder = "0.5"
+
+num = "*"
+time = "0.1"
