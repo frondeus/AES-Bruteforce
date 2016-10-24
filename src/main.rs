@@ -40,7 +40,7 @@ fn decrypt_from_to(from: u64,
         match output {
             Ok(o) => match String::from_utf8(o) {
                 Ok(s) => {
-                    println!("Decrypted: {}", s);
+                    println!("Decrypted for key {}: {}", prefix.to_hex(), s);
                     return true;
                 },
                 Err(_) => ()
@@ -70,7 +70,7 @@ fn main() {
 
     let prefix_length = key_length - suffix.len();
     let max_prefix = pow(16 as u64, prefix_length as usize);
-    let least_prefix = 0; //797307904;
+    let least_prefix :u64 = 2349724672; //797307904;
                         
 
     //Threading 
