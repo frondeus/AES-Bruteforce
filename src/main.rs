@@ -22,25 +22,25 @@ use std::env;
 fn decrypt_from_to(from: u64, 
                    to: u64,
                    iv: &Vec<u8>,
-                   suffix: &Vec<u8>,
+                   suffix: &str,
                    input: &Vec<u8>,
                    prefix_length: usize) -> bool {
     for i in from..to {
 
-        let mut prefix = vec![];
-        prefix.write_u32::<BigEndian>(i as u32).unwrap();
-        //let prefix = "bbdd6317";
+        let prefix = create_prefix(i, prefix_length);
+        let key = prefix + suffix;
+        let _key = key.from_hex().unwrap();
+        //let mut prefix = vec![];
+        //prefix.write_u32::<BigEndian>(i as u32).unwrap();
         
-        //println!("Prefix: {:?}", prefix.to_hex());
-        prefix.extend(suffix.clone());
-        //println!("Key: {:?}", prefix.to_hex());
+        //prefix.extend(suffix.clone());
 
-        let output = decrypt(Type::AES_256_CBC, &prefix, Some(iv), input);
+        let output = decrypt(Type::AES_256_CBC, &_key, Some(iv), input);
 
         match output {
             Ok(o) => match String::from_utf8(o) {
                 Ok(s) => {
-                    println!("Decrypted for key {}: {}", prefix.to_hex(), s);
+                    println!("Decrypted for key {}: {}", key, s);
                     return true;
                 },
                 Err(_) => ()
@@ -59,18 +59,21 @@ use std::sync::{Arc, Mutex};
 fn main() {
     let key_length = 64;
 
-    let input = "EGSz+edincW0ukwMqftJlIbkZNiERzUiZfvFlpsYoqcVwbwYzlWUIyzNA9+XDFJWaSQS9sRCfR0IpZa82QSP8BA/dRRgYzv48JfnFHmhdsAbi8C9JGdOvjns+p+WzOvxpDpGoAZXiljuxMiXjPdt/YSraLsXDifeAnN0HSv22ug=";
-    let iv = "e2fd57f289635be74028adc6624f7b35";
-    let suffix = "cc4498b9b12eee0eadd822b26671356fd7d66e16037ad70c4c72f7b0";
+    //let input = "EGSz+edincW0ukwMqftJlIbkZNiERzUiZfvFlpsYoqcVwbwYzlWUIyzNA9+XDFJWaSQS9sRCfR0IpZa82QSP8BA/dRRgYzv48JfnFHmhdsAbi8C9JGdOvjns+p+WzOvxpDpGoAZXiljuxMiXjPdt/YSraLsXDifeAnN0HSv22ug=";
+    //let iv = "e2fd57f289635be74028adc6624f7b35";
+    //let suffix = "cc4498b9b12eee0eadd822b26671356fd7d66e16037ad70c4c72f7b0";
 
+    let iv = "518be2ee1dc5da4a4263b69a677b6223";
+    let suffix = "70d34982c91a63d9f51b8929ee406940f6a5e52e55105dbc0a9306f";
+    let input = "8tkbGMX+AZf0mhkfV1/LsAs+1pK6CsQjWE2Tvp5YN38zPbOm+HuwEQjQe4OvuqrGk6fUtcI7yxXkYO8vB3YA9f1az3ByRUGyljLTiPUNcNSAz+MUiKl2Jc9YC9Rrt+o5";
 
     let _iv = iv.from_hex().unwrap();
     let _input = base64::decode(input.as_bytes()).unwrap();
-    let _suffix = suffix.from_hex().unwrap();
+    //let _suffix = suffix.from_hex().unwrap();
 
     let prefix_length = key_length - suffix.len();
     let max_prefix = pow(16 as u64, prefix_length as usize);
-    let least_prefix :u64 = 2349724672; //797307904;
+    let least_prefix :u64 = 0;
                         
 
     //Threading 
@@ -87,7 +90,7 @@ fn main() {
         let i = i.clone();
         let _iv = _iv.clone();
         let _input = _input.clone();
-        let _suffix = _suffix.clone();
+        //let _suffix = _suffix.clone();
         let thread = thread::spawn(move || {
             loop {
                 let from: u64;
@@ -108,7 +111,7 @@ fn main() {
                          ((to as f64 / max_prefix as f64) * 100 as f64) as f64
                          );
                 
-                let res = decrypt_from_to(from, to, &_iv, &_suffix, &_input, prefix_length);
+                let res = decrypt_from_to(from, to, &_iv, suffix, &_input, prefix_length);
                 if res == true {
                     let mut _i = i.lock().unwrap();
                     *_i = max_prefix + 1;
